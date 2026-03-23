@@ -44,4 +44,10 @@ Rails.application.configure do
 
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
+  
+ # Force disable ALL encryption
+config.active_record.encryption.enabled = false
+config.active_support.encrypted_file_encryption_key = nil
+config.active_support.encrypted_configuration = false
+config.active_record.encryption.encrypt_fixtures = false
 end
