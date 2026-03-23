@@ -3,7 +3,5 @@ ENV['SOLID_QUEUE_ENCRYPTION_KEY'] ||= 'e05de8d13df0bd61'
 ENV['ENCRYPTION_KEY'] ||= 'e05de8d13df0bd61'
 ENV['SECRET'] ||= 'e05de8d13df0bd61'
 
-# If @secret is being used directly
-if defined?(@secret)
-  @secret = ENV['SECRET'] || ENV['ENCRYPTION_KEY']
-end
+# Set @secret directly (this is what the error is looking for)
+@secret = ENV['SECRET'] || ENV['ENCRYPTION_KEY'] || 'e05de8d13df0bd61'
