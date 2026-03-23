@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+Rails.application.routes.draw do
+  get "health", to: ->(env) { [200, {}, ["OK"]] }
   namespace :api do
     namespace :v1 do
       post '/register', to: 'auth#register'
