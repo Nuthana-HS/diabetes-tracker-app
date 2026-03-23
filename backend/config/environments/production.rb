@@ -31,8 +31,7 @@ Rails.application.configure do
 
   # Disabled: using single database instead of solid cache/queue/cable.
   # config.cache_store = :solid_cache_store
-  # config.active_job.queue_adapter = :solid_queue
-  # config.solid_queue.connects_to = { database: { writing: :queue } }
+  config.active_job.queue_adapter = :async  # config.solid_queue.connects_to = { database: { writing: :queue } }
 
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "example.com" }
