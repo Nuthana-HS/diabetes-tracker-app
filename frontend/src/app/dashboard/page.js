@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 import MedicationReminders from '@/components/MedicationReminders';
 import { getUserProfile } from '@/services/api';
 import GamificationBanner from '@/components/GamificationBanner';
+import AiChat from '@/components/AiChat';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -145,6 +146,14 @@ export default function DashboardPage() {
 
       <div className="dash-page min-h-screen bg-slate-100 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-200">
         <MedicationReminders medications={medications} />
+        {/* AI Chat Assistant */}
+<div className="max-w-6xl mx-auto px-6 mt-8 mb-8">
+  <AiChat userData={{ 
+    morningAvg: userProfile?.morningAvg || 140, 
+    postMealAvg: userProfile?.postMealAvg || 180,
+    todayReading: userProfile?.todayReading || 130
+  }} />
+</div>
 
         {/* ── HEADER ── */}
         <div className="sticky top-0 z-20 bg-gradient-to-br from-sky-700 to-sky-500 shadow-md dark:shadow-sky-900/20">
