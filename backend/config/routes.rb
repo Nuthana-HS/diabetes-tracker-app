@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   get "health", to: ->(env) { [200, {}, ["OK"]] }
-  
+
   namespace :api do
     namespace :v1 do
       # Auth routes
@@ -17,6 +17,10 @@ Rails.application.routes.draw do
       resources :weight_records, only: [:index, :create, :destroy]
       resources :meal_logs, only: [:index, :create, :destroy]
       resources :activity_logs, only: [:index, :create, :destroy]
+
+      # AI Routes
+      post 'ai/chat', to: 'ai#chat'
+      get 'ai/insights', to: 'ai#insights'
     end
   end
 end
