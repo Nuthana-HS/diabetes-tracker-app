@@ -1,5 +1,5 @@
 class Api::V1::MedicationsController < ApplicationController
-  before_action :authenticate_user
+  before_action :authenticate_user!
 
   def index
     patient = current_user.patient_profile
@@ -46,17 +46,4 @@ class Api::V1::MedicationsController < ApplicationController
   def medication_params
     params.permit(:name, :dosage, :frequency, :start_date, :end_date, :is_current)
   end
-
-  def authenticate_user
-    header = request.headers['Authorization']
-    token = header&.split(' ')&.last
-    
-    if token
-      decoded = JWT.decode(token, Rails.application.secret_key_base).first
-      @current_user = User.find_by(id: decoded['user_id'])
-    end
-    
-    render json: { error: 'Unauthorized' }, status: :unauthorized unless @current_user
-  end
-end
 

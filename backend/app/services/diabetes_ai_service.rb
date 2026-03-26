@@ -2,7 +2,7 @@ require 'net/http'
 require 'json'
 
 class DiabetesAiService
-  GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"
+  GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent"
 
   def initialize(user)
     @user = user
@@ -10,6 +10,9 @@ class DiabetesAiService
   end
 
   def chat(user_message)
+    @patient = @user.patient
+    return "No patient profile found" if @patient.nil?
+
     # Fetch patient context before calling AI
     context = build_patient_context
 
@@ -18,6 +21,12 @@ class DiabetesAiService
       
       Here is the patient's current health data:
       
+      👤 Patient Profile:
+      #{context[:profile]}
+
+      ⚖️ Latest Weight:
+      #{context[:weight]}
+
       🩸 Blood Sugar (last 7 days):
       #{context[:blood_sugar]}
       
@@ -48,7 +57,9 @@ class DiabetesAiService
   private
 
   def build_patient_context
-    {
+    @context ||= {
+      profile: fetch_profile,
+      weight: fetch_weight,
       blood_sugar: fetch_blood_sugar,
       medications: fetch_medications,
       hba1c: fetch_hba1c,
@@ -57,69 +68,90 @@ class DiabetesAiService
     }
   end
 
+  def fetch_profile
+    type = @patient.diabetes_type || "Unknown Type"
+    target = @patient.target_hba1c ? "#{@patient.target_hba1c}%" : "Not set"
+    insulin = @patient.insulin_dependent ? "Yes" : "No"
+    "Diabetes Type: #{type}, Target HbA1c: #{target}, Insulin Dependent: #{insulin}"
+  rescue => e
+    "Could not fetch profile data: #{e.message}"
+  end
+
+  def fetch_weight
+    record = @patient.weight_records.order(recorded_at: :desc).first
+    return "No weight records found" unless record
+    "#{record.value} kg (logged on #{record.recorded_at&.strftime('%b %d') || record.created_at.strftime('%b %d')})"
+  rescue => e
+    "Could not fetch weight data: #{e.message}"
+  end
+
   def fetch_blood_sugar
-    readings = @user.blood_sugar_readings
-                    .where(created_at: 7.days.ago..)
-                    .order(created_at: :desc)
+    readings = @patient.blood_sugar_readings
+                       .where(recorded_at: 7.days.ago..)
+                       .order(recorded_at: :desc)
 
     return "No readings found in last 7 days" if readings.empty?
 
     readings.map do |r|
-      "- #{r.created_at.strftime('%b %d %H:%M')}: #{r.value} #{r.unit rescue 'mg/dL'}"
+      time = r.recorded_at || r.created_at
+      "- #{time.strftime('%b %d %H:%M')}: #{r.value} mg/dL #{r.notes}"
     end.join("\n")
   rescue => e
     "Could not fetch blood sugar data: #{e.message}"
   end
 
   def fetch_medications
-    meds = @user.patient_medications
+    meds = @patient.patient_medications
 
     return "No medications on record" if meds.empty?
 
     meds.map do |m|
-      "- #{m.name} #{m.dosage rescue ''} #{m.frequency rescue ''}"
+      "- #{m.name} #{m.dosage rescue ''} #{m.frequency rescue ''} #{m.is_current ? '(Current)' : '(Past)'}"
     end.join("\n")
   rescue => e
     "Could not fetch medications: #{e.message}"
   end
 
   def fetch_hba1c
-    records = @user.hba1c_records
-                   .order(created_at: :desc)
-                   .limit(5)
+    records = @patient.hb_a1c_records
+                      .order(date: :desc)
+                      .limit(5)
 
     return "No HbA1c records found" if records.empty?
 
     records.map do |h|
-      "- #{h.created_at.strftime('%b %Y')}: #{h.value}%"
+      time = h.date || h.created_at
+      "- #{time.strftime('%b %Y')}: #{h.value}% #{h.notes}"
     end.join("\n")
   rescue => e
     "Could not fetch HbA1c data: #{e.message}"
   end
 
   def fetch_meals
-    meals = @user.meal_logs
-                 .where(created_at: 3.days.ago..)
-                 .order(created_at: :desc)
+    meals = @patient.meal_logs
+                    .where(recorded_at: 3.days.ago..)
+                    .order(recorded_at: :desc)
 
     return "No meal logs in last 3 days" if meals.empty?
 
     meals.map do |m|
-      "- #{m.created_at.strftime('%b %d')}: #{m.description rescue m.food_name rescue 'Meal logged'}"
+      time = m.recorded_at || m.created_at
+      "- #{time.strftime('%b %d %H:%M')}: #{m.meal_type} - #{m.calories}kcal #{m.notes}"
     end.join("\n")
   rescue => e
     "Could not fetch meal data: #{e.message}"
   end
 
   def fetch_activities
-    activities = @user.activity_logs
-                      .where(created_at: 3.days.ago..)
-                      .order(created_at: :desc)
+    activities = @patient.activity_logs
+                         .where(recorded_at: 3.days.ago..)
+                         .order(recorded_at: :desc)
 
     return "No activity logs in last 3 days" if activities.empty?
 
     activities.map do |a|
-      "- #{a.created_at.strftime('%b %d')}: #{a.activity_type rescue a.name rescue 'Activity logged'}"
+      time = a.recorded_at || a.created_at
+      "- #{time.strftime('%b %d %H:%M')}: #{a.activity_type} #{a.duration_minutes}min (#{a.intensity}) #{a.notes}"
     end.join("\n")
   rescue => e
     "Could not fetch activity data: #{e.message}"

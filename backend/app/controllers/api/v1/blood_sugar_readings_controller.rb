@@ -1,5 +1,5 @@
 class Api::V1::BloodSugarReadingsController < ApplicationController
-  before_action :authenticate_user
+  before_action :authenticate_user!
 
   def index
     readings = current_user.patient_profile.blood_sugar_readings
@@ -33,24 +33,4 @@ class Api::V1::BloodSugarReadingsController < ApplicationController
     )
   end
 
-  def authenticate_user
-    header = request.headers['Authorization']
-    token = header&.split(' ')&.last
-
-    if token
-      begin
-        decoded = JWT.decode(token, Rails.application.secret_key_base).first
-        @current_user = User.find_by(id: decoded['user_id'])
-      rescue JWT::DecodeError
-        render json: { error: 'Invalid token' }, status: :unauthorized
-        return
-      end
-    end
-
-    render json: { error: 'Unauthorized' }, status: :unauthorized unless @current_user
-  end
-
-  def current_user
-    @current_user
-  end
 end

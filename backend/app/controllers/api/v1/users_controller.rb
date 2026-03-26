@@ -1,5 +1,5 @@
 class Api::V1::UsersController < ApplicationController
-  before_action :authorize_request
+  before_action :authenticate_user!
 
   def me
     if @current_user.patient?
