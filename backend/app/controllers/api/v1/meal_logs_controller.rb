@@ -4,32 +4,33 @@ module Api
       before_action :authenticate_user!
 
       def index
-        patient = @current_user.patient_profile
-        @meal_logs = patient.meal_logs.order(recorded_at: :desc)
-        render json: @meal_logs
+        patient = current_user.patient
+        logs = patient.meal_logs.order(recorded_at: :desc)
+        render json: logs
       end
 
       def create
-        patient = @current_user.patient_profile
-        @meal_log = patient.meal_logs.build(meal_log_params)
+        patient = current_user.patient
+        log = patient.meal_logs.new(meal_log_params)
 
-        if @meal_log.save
-          render json: @meal_log, status: :created
+        if log.save
+          render json: log, status: :created
         else
-          render json: { errors: @meal_log.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: log.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
       def destroy
-        patient = @current_user.patient_profile
-        @meal_log = patient.meal_logs.find(params[:id])
-        @meal_log.destroy
+        log = current_user.patient.meal_logs.find(params[:id])
+        log.destroy
         head :no_content
       end
 
       private
 
       def meal_log_params
-        params.permit(:meal_type, :carbohydrates_g, :calories, :recorded_at, :notes)
+        params.permit(:meal_type, :calories, :carbohydrates_g, :notes, :recorded_at)
       end
-
+    end
+  end
+end
