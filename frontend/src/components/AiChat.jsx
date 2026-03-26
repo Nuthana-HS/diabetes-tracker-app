@@ -1,12 +1,9 @@
 "use client";
 import { useState } from "react";
 
-export default function AiChat({ userData }) {
+export default function AiChat() {
   const [messages, setMessages] = useState([
-    {
-      role: "ai",
-      text: "Hi! I am your diabetes assistant. Ask me anything about your health data!",
-    },
+    { role: "ai", text: "Hi! I'm your diabetes assistant. How can I help you today?" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,17 +17,25 @@ export default function AiChat({ userData }) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/ai-chat", {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/v1/ai/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage, userData }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message: userMessage }),
       });
-      const data = await res.json();
-      setMessages((prev) => [...prev, { role: "ai", text: data.reply }]);
-    } catch {
+
+      const data = await response.json();
       setMessages((prev) => [
         ...prev,
-        { role: "ai", text: "Sorry, something went wrong. Try again." },
+        { role: "ai", text: data.reply || "I'm here to help!" },
+      ]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "Sorry, something went wrong. Please try again." },
       ]);
     } finally {
       setLoading(false);
@@ -38,85 +43,41 @@ export default function AiChat({ userData }) {
   };
 
   return (
-  <div style={{
-    border: "5px solid #ff0000",
-    borderRadius: "12px",
-    padding: "20px",
-    maxWidth: "800px",
-    margin: "40px auto",
-    fontFamily: "sans-serif",
-    backgroundColor: "#fff3cd",
-    boxShadow: "0 0 20px rgba(0,0,0,0.2)"
-  }}>
-    <h3 style={{ margin: "0 0 12px", color: "#2d7a4f", fontSize: "20px" }}>
-      🤖 AI Diabetes Assistant
-    </h3>
-
-      <div style={{
-        height: "350px",
-        overflowY: "auto",
-        marginBottom: "12px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px"
-      }}>
+    <div className="bg-white rounded-xl shadow-md border border-gray-200">
+      <div className="bg-blue-600 text-white px-4 py-3 rounded-t-xl">
+        <h3 className="font-semibold">🤖 AI Assistant</h3>
+      </div>
+      <div className="h-80 overflow-y-auto p-4 space-y-2">
         {messages.map((msg, i) => (
-          <div key={i} style={{
-            alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
-            background: msg.role === "user" ? "#2d7a4f" : "#f0f0f0",
-            color: msg.role === "user" ? "white" : "#333",
-            padding: "10px 14px",
-            borderRadius: "18px",
-            maxWidth: "80%",
-            fontSize: "14px",
-            lineHeight: "1.5"
-          }}>
-            {msg.text}
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[75%] px-3 py-2 rounded-lg text-sm ${
+              msg.role === "user" 
+                ? "bg-blue-600 text-white" 
+                : "bg-gray-100 text-gray-800"
+            }`}>
+              {msg.text}
+            </div>
           </div>
         ))}
         {loading && (
-          <div style={{
-            alignSelf: "flex-start",
-            background: "#f0f0f0",
-            padding: "10px 14px",
-            borderRadius: "18px",
-            fontSize: "14px",
-            color: "#888"
-          }}>
-            Thinking...
+          <div className="flex justify-start">
+            <div className="bg-gray-100 px-3 py-2 rounded-lg text-sm text-gray-500">Typing...</div>
           </div>
         )}
       </div>
-
-      <div style={{ display: "flex", gap: "8px" }}>
+      <div className="p-3 border-t flex gap-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ask about your health data..."
-          style={{
-            flex: 1,
-            padding: "10px 14px",
-            borderRadius: "8px",
-            border: "1px solid #e0e0e0",
-            fontSize: "14px",
-            outline: "none"
-          }}
+          placeholder="Ask me anything..."
+          className="flex-1 px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={sendMessage}
           disabled={loading}
-          style={{
-            background: "#2d7a4f",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            padding: "10px 18px",
-            fontSize: "14px",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1
-          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
         >
           Send
         </button>
