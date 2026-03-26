@@ -10,7 +10,6 @@ class Api::V1::AiController < ApplicationController
 
     service = DiabetesAiService.new(current_user)
     reply = service.chat(user_message)
-
     render json: { reply: reply }
 
   rescue KeyError => e
@@ -28,11 +27,3 @@ class Api::V1::AiController < ApplicationController
     render json: { error: "Could not generate insights." }, status: :internal_server_error
   end
 end
-```
-
----
-
-**Set in Railway → Variables:**
-```
-GEMINI_API_KEY=AIzaSy-your-key-here
-FRONTEND_URL=https://diabetes-tracker-app.vercel.app
