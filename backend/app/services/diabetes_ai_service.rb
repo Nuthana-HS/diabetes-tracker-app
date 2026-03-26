@@ -7,23 +7,19 @@ class DiabetesAiService
     @api_key = ENV['GEMINI_API_KEY']
   end
 
-  def get_insights
-    { success: true, insights: "AI insights coming soon!" }
-  end
-
   def chat_response(user_message, health_data)
-    return "Please add your Gemini API key in Railway variables" if @api_key.blank?
+    # Check if API key exists
+    if @api_key.blank?
+      return "⚠️ Gemini API key not configured. Please add GEMINI_API_KEY in Railway variables."
+    end
     
+    # Build the prompt
     prompt = "You are a friendly diabetes assistant. User asks: '#{user_message}'. 
               Their morning sugar: #{health_data[:morning_avg]} mg/dL. 
-              Give a short, helpful answer under 50 words."
+              Their latest HbA1c: #{health_data[:hba1c] || 'no data'}%.
+              Give a short, helpful, friendly answer in under 50 words."
     
-    call_gemini_api(prompt)
-  end
-
-  private
-
-  def call_gemini_api(prompt)
+    # Call Gemini API
     uri = URI("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=#{@api_key}")
     
     request_body = {
@@ -32,18 +28,20 @@ class DiabetesAiService
       }]
     }
     
-    response = Net::HTTP.post(uri, request_body.to_json, {
-      'Content-Type' => 'application/json'
-    })
-    
-    result = JSON.parse(response.body)
-    
-    if result['candidates']
-      result['candidates'][0]['content']['parts'][0]['text']
-    else
-      "I'm here to help! Ask me anything about diabetes management."
+    begin
+      response = Net::HTTP.post(uri, request_body.to_json, {
+        'Content-Type' => 'application/json'
+      })
+      
+      result = JSON.parse(response.body)
+      
+      if result['candidates'] && result['candidates'][0]
+        return result['candidates'][0]['content']['parts'][0]['text']
+      else
+        return "I'm here to help! Could you rephrase your question?"
+      end
+    rescue => e
+      return "Sorry, I'm having trouble connecting. Please try again later. Error: #{e.message}"
     end
-  rescue => e
-    "I'm having trouble connecting. Please try again later."
   end
 end
