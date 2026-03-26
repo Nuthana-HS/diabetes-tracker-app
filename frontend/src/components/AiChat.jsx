@@ -38,17 +38,19 @@ export default function AiChat({ userData }) {
   };
 
   return (
-    <div style={{
-      border: "1px solid #e0e0e0",
-      borderRadius: "12px",
-      padding: "16px",
-      maxWidth: "600px",
-      margin: "20px auto",
-      fontFamily: "sans-serif"
-    }}>
-      <h3 style={{ margin: "0 0 12px", color: "#2d7a4f" }}>
-        AI Diabetes Assistant
-      </h3>
+  <div style={{
+    border: "5px solid #ff0000",
+    borderRadius: "12px",
+    padding: "20px",
+    maxWidth: "800px",
+    margin: "40px auto",
+    fontFamily: "sans-serif",
+    backgroundColor: "#fff3cd",
+    boxShadow: "0 0 20px rgba(0,0,0,0.2)"
+  }}>
+    <h3 style={{ margin: "0 0 12px", color: "#2d7a4f", fontSize: "20px" }}>
+      🤖 AI Diabetes Assistant
+    </h3>
 
       <div style={{
         height: "350px",
