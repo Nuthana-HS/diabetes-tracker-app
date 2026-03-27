@@ -1,0 +1,16 @@
+GEM
+  specs:
+    logger (1.7.0)
+    rack (3.2.5)
+    rack-cors (3.0.0)
+      logger
+      rack (>= 3.0.14)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  rack-cors
+
+BUNDLED WITH
+   2.4.10
