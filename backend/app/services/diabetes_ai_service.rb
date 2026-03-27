@@ -3,7 +3,7 @@ require 'net/http'
 require 'json'
 
 class DiabetesAiService
-  GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
+  GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
   def initialize(user)
     @user = user
