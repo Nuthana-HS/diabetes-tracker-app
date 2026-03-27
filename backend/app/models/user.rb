@@ -20,7 +20,7 @@ class User < ApplicationRecord
         role: role,
         exp: 24.hours.from_now.to_i
       },
-      Rails.application.secret_key_base
+      JWT_SECRET
     )
   end
 end
